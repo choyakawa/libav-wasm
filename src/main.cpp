@@ -441,6 +441,7 @@ extern "C" {
       // Force transmuxing instead of re-encoding by copying the codecs
       av_dict_set(&opts, "c", "copy", 0);
       // https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API/Transcoding_assets_for_MSE
+      av_dict_set(&opts, "strict", "-2", 0);
       // Fragment the MP4 output
       av_dict_set(&opts, "movflags", "frag_keyframe+empty_moov+default_base_moof", 0);
 
