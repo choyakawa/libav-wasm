@@ -53,24 +53,31 @@ jobs:
             path: "*.tgz"
 
   publish:
-    name: "Publish to GitHub Packages"
+    name: "Create Release"
     needs: [package]
     runs-on: ubuntu-22.04
-    if: github.repository_owner == 'banou26'
     steps:
     - name: Download package artifact
       uses: actions/download-artifact@v3
       with:
           name: package
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 19.x
-        registry-url: https://npm.pkg.github.com/
-        scope: "@banou26"
-    - run: echo "registry=https://npm.pkg.github.com/@banou26" >> .npmrc
-    - run: npm publish $(ls *.tgz)
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
       env:
-        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    # - uses: actions/delete-package-versions@v1
-    #   with:
-    #     package-name: 'libav-wasm'
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.0-${{ github.run_id }}
+        release_name: Release ${{ github.run_id }}
+        body: "Automated release created for run ${{ github.run_id }}"
+        draft: false
+        prerelease: true
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: $(ls *.tgz)
+        asset_name: $(basename $(ls *.tgz))
+        asset_content_type: application/gzip
